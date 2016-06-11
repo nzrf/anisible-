@@ -1,0 +1,21 @@
+---
+- hosts: localhost
+  sudo: yes
+  tasks:
+  - user: name=nezorf comment="Dylan Hager" uid=2000 createhome=yes home=/home/nezorf
+  - name: Placing key
+    authorized_key: user=nezorf key=https://github.com/nzrf.keys
+
+  - stat: path=/etc/sudoers.d/10-ansible-users
+    register: sudofile
+
+  - name:
+    file: path=/etc/sudoers.d/10-ansible-users state=touch owner=root group=root mode=0440
+    when: sudofile.stat.exists == False
+
+  - name: add a string to the new file
+    lineinfile: dest=/etc/sudoers.d/10-ansible-users
+                regexp='^'
+                line='nezorf ALL=(ALL) NOPASSWD:ALL'
+                state=present
+
